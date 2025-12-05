@@ -223,7 +223,9 @@ app.delete('/api/records/:id', async (req, res) => {
 // GET /api/masters - Получить всех мастеров
 app.get('/api/masters', async (req, res) => {
   try {
+    console.log('Запрос всех мастеров из БД...');
     const masters = await db.getAllMasters();
+    console.log(`Получено мастеров из БД: ${masters.length}`);
     res.json(masters);
   } catch (error) {
     console.error('Ошибка получения мастеров:', error);
@@ -255,7 +257,9 @@ app.post('/api/masters', async (req, res) => {
       ...req.body,
       id: `master-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     };
+    console.log('Создание мастера:', newMaster);
     const createdMaster = await db.createMaster(newMaster);
+    console.log('Мастер создан успешно:', createdMaster);
     res.status(201).json(createdMaster);
   } catch (error) {
     console.error('Ошибка создания мастера:', error);

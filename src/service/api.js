@@ -109,8 +109,15 @@ export async function deleteRecord(recordId) {
 // Получить всех мастеров
 export async function getAllMasters() {
   try {
+    console.log('Запрос всех мастеров...');
     const data = await fetchAPI('/masters');
-    return data;
+    console.log('Получены мастера из API:', data);
+    if (Array.isArray(data)) {
+      return data;
+    } else {
+      console.error('Некорректный формат данных мастеров:', data);
+      return [];
+    }
   } catch (err) {
     console.error("ошибка загрузки мастеров", err);
     return [];
@@ -149,6 +156,33 @@ export async function createMaster(masterData) {
     return response;
   } catch (err) {
     console.error("ошибка создания мастера", err);
+    return { success: false, error: err.message };
+  }
+}
+
+// Добавить услугу мастеру
+export async function addServiceToMaster(masterId, serviceId) {
+  try {
+    const response = await fetchAPI(`/masters/${masterId}/services`, {
+      method: 'POST',
+      body: JSON.stringify({ service_id: serviceId })
+    });
+    return response;
+  } catch (err) {
+    console.error("ошибка добавления услуги мастеру", err);
+    return { success: false, error: err.message };
+  }
+}
+
+// Удалить услугу у мастера
+export async function removeServiceFromMaster(masterId, serviceId) {
+  try {
+    const response = await fetchAPI(`/masters/${masterId}/services/${serviceId}`, {
+      method: 'DELETE'
+    });
+    return response;
+  } catch (err) {
+    console.error("ошибка удаления услуги у мастера", err);
     return { success: false, error: err.message };
   }
 }
