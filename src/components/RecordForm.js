@@ -279,7 +279,7 @@ export default function CreateCard() {
                           style={{ marginRight: '8px' }}
                         />
                         <span style={{ flex: 1 }}>
-                          {service.name} - {service.price} ₽
+                          {service.name}
                         </span>
                       </label>
                     </div>
@@ -303,6 +303,19 @@ export default function CreateCard() {
             </ul>
           </div>
         )}
+
+        <div>
+          <label>Стоимость работы (₽):</label>
+          <input
+            type="number"
+            name="payment_amount"
+            value={formData.payment_amount}
+            onChange={handleChange}
+            min="0"
+            step="0.01"
+            placeholder="Укажите стоимость работы"
+          />
+        </div>
 
         <div>
           <label>Дата:</label>
