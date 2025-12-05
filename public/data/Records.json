@@ -1,0 +1,42 @@
+[
+  {
+    "client": "Ivan Petrov",
+    "car": "Toyota Camry 2015",
+    "service": "Oil change",
+    "price": 3500,
+    "date": "2025-10-05",
+    "payment_status": "paid"
+  },
+  {
+    "client": "Alexey Smirnov",
+    "car": "Honda Civic 2018",
+    "service": "Brake pads replacement",
+    "price": 6200,
+    "date": "2025-10-06",
+    "payment_status": "unpaid"
+  },
+  {
+    "client": "Maria Ivanova",
+    "car": "Ford Focus 2017",
+    "service": "Engine diagnostics",
+    "price": 2000,
+    "date": "2025-10-07",
+    "payment_status": "paid"
+  },
+  {
+    "client": "Dmitry Orlov",
+    "car": "Nissan X-Trail 2020",
+    "service": "Air conditioner refill",
+    "price": 2800,
+    "date": "2025-10-08",
+    "payment_status": "paid"
+  },
+  {
+    "client": "Olga Sokolova",
+    "car": "Kia Rio 2019",
+    "service": "Tire replacement",
+    "price": 4500,
+    "date": "2025-10-09",
+    "payment_status": "unpaid"
+  }
+]

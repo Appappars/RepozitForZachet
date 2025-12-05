@@ -1,0 +1,385 @@
+/* Общие стили для приложения */
+.record-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 15px 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.record-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Значок статуса */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.status-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Цвета статусов */
+.status-red {
+  background-color: #fee;
+  color: #c33;
+  border: 1px solid #fcc;
+}
+
+.status-red .status-icon {
+  background-color: #c33;
+}
+
+.status-green {
+  background-color: #efe;
+  color: #3c3;
+  border: 1px solid #cfc;
+}
+
+.status-green .status-icon {
+  background-color: #3c3;
+}
+
+.status-yellow {
+  background-color: #ffd;
+  color: #cc3;
+  border: 1px solid #ffc;
+}
+
+.status-yellow .status-icon {
+  background-color: #cc3;
+}
+
+.status-gray {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.status-gray .status-icon {
+  background-color: #666;
+}
+
+/* Содержимое карточки */
+.card-content {
+  margin-bottom: 15px;
+}
+
+.card-field {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-field:last-child {
+  border-bottom: none;
+}
+
+.field-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 14px;
+}
+
+.field-value {
+  color: #333;
+  font-size: 14px;
+  text-align: right;
+  flex: 1;
+  margin-left: 10px;
+}
+
+/* Информация об оплате */
+.payment-info {
+  background-color: #f0f9ff;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #28a745;
+  margin-top: 10px;
+}
+
+.payment-info .field-label {
+  color: #28a745;
+  font-weight: 700;
+}
+
+.payment-info .field-value {
+  color: #155724;
+  font-weight: 600;
+}
+
+/* Комментарий */
+.comment-info {
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #6c757d;
+  margin-top: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.comment-info .field-label {
+  color: #6c757d;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.comment-info .field-value {
+  color: #495057;
+  text-align: left;
+  margin-left: 0;
+  font-style: italic;
+  width: 100%;
+}
+
+/* Причина отмены */
+.cancel-reason {
+  background-color: #fff5f5;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #dc3545;
+  margin-top: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cancel-reason .field-label {
+  color: #dc3545;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.cancel-reason .field-value {
+  color: #721c24;
+  text-align: left;
+  margin-left: 0;
+  font-style: italic;
+  width: 100%;
+}
+
+/* Кнопки действий */
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.btn-edit,
+.btn-delete {
+  flex: 1;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-edit:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.btn-edit:active,
+.btn-delete:active {
+  transform: translateY(0);
+}
+
+/* Стили для формы */
+form {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+form > div {
+  margin-bottom: 20px;
+}
+
+form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+form input[type="text"],
+form input[type="number"],
+form input[type="date"],
+form select,
+form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  background-color: #fff;
+  font-family: inherit;
+}
+
+form input[type="text"]:focus,
+form input[type="number"]:focus,
+form input[type="date"]:focus,
+form select:focus,
+form textarea:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+form select {
+  cursor: pointer;
+}
+
+form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+form button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+form button[type="submit"]:hover {
+  background-color: #218838;
+}
+
+/* Список записей */
+.records-list {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.records-header {
+  margin-bottom: 30px;
+}
+
+.records-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Фильтры */
+.filter-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  border-color: #007bff;
+  color: #007bff;
+  transform: translateY(-1px);
+}
+
+.filter-btn.active {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: #fff;
+}
+
+.filter-btn.active:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* Навигация */
+nav {
+  background-color: #f8f9fa;
+  padding: 15px 20px;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 20px;
+}
+
+nav a {
+  margin-right: 20px;
+  text-decoration: none;
+  color: #007bff;
+  font-weight: 600;
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+nav a:hover {
+  color: #0056b3;
+}
+
+/* Сообщения об ошибках и успехе */
+.res-create-record {
+  margin-top: 15px;
+  padding: 12px;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 6px;
+  border: 1px solid #c3e6cb;
+  font-weight: 600;
+}
+
