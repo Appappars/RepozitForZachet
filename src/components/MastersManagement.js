@@ -386,7 +386,7 @@ export default function MastersManagement() {
                               borderRadius: '4px'
                             }}
                           >
-                            <span>{service.name} - {service.price} ₽</span>
+                            <span>{service.name}</span>
                             <button
                               onClick={() => handleRemoveServiceFromMaster(master.id, service.id)}
                               style={{

@@ -96,7 +96,7 @@ export default function Card({id, client, car, master_name, master_phone, servic
                             <ul style={{ margin: 0, paddingLeft: '20px' }}>
                                 {services.map((service, index) => (
                                     <li key={index}>
-                                        {service.service_name || service.name} - {service.price} ₽
+                                        {service.service_name || service.name}
                                     </li>
                                 ))}
                             </ul>
