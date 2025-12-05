@@ -211,6 +211,20 @@ export async function getServiceById(serviceId) {
   }
 }
 
+// Создать услугу
+export async function createService(serviceData) {
+  try {
+    const response = await fetchAPI('/services', {
+      method: 'POST',
+      body: JSON.stringify(serviceData)
+    });
+    return response;
+  } catch (err) {
+    console.error("ошибка создания услуги", err);
+    return { success: false, error: err.message };
+  }
+}
+
 // Получить мастеров по услуге
 export async function getMastersByService(serviceId) {
   try {

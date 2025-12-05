@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllMasters, createMaster, getAllServices, addServiceToMaster, removeServiceFromMaster, getMasterServices } from '../service/api';
+import { getAllMasters, createMaster, getAllServices, addServiceToMaster, removeServiceFromMaster, getMasterServices, createService } from '../service/api';
 
 export default function MastersManagement() {
   const [masters, setMasters] = useState([]);
@@ -17,6 +17,13 @@ export default function MastersManagement() {
   const [selectedServices, setSelectedServices] = useState([]);
   const [masterServices, setMasterServices] = useState({}); // {masterId: [services]}
   const [submitting, setSubmitting] = useState(false);
+  const [showNewServiceForm, setShowNewServiceForm] = useState(false);
+  const [newServiceData, setNewServiceData] = useState({
+    name: '',
+    price: '',
+    description: ''
+  });
+  const [creatingService, setCreatingService] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -140,6 +147,55 @@ export default function MastersManagement() {
         return [...prev, serviceId];
       }
     });
+  };
+
+  const handleNewServiceChange = (e) => {
+    const { name, value } = e.target;
+    setNewServiceData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCreateService = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!newServiceData.name.trim()) {
+      setError('Название услуги обязательно');
+      return;
+    }
+    
+    if (!newServiceData.price || Number(newServiceData.price) <= 0) {
+      setError('Цена услуги должна быть больше 0');
+      return;
+    }
+
+    setCreatingService(true);
+    try {
+      const response = await createService({
+        name: newServiceData.name.trim(),
+        price: Number(newServiceData.price),
+        description: newServiceData.description.trim() || null
+      });
+      
+      if (response.id) {
+        // Обновляем список услуг
+        await loadServices();
+        // Автоматически добавляем новую услугу к выбранным
+        setSelectedServices(prev => [...prev, response.id]);
+        // Очищаем форму
+        setNewServiceData({ name: '', price: '', description: '' });
+        setShowNewServiceForm(false);
+        setSuccess('Услуга успешно создана и добавлена к мастеру!');
+      } else {
+        setError(response.error || 'Ошибка при создании услуги');
+      }
+    } catch (err) {
+      setError('Ошибка при создании услуги: ' + err.message);
+    } finally {
+      setCreatingService(false);
+    }
   };
 
   const handleAddServiceToMaster = async (masterId, serviceId) => {
@@ -305,13 +361,123 @@ export default function MastersManagement() {
             </div>
 
             <div style={{ marginBottom: '15px' }}>
-              <label style={{ 
-                display: 'block', 
-                marginBottom: '8px', 
-                fontWeight: 'bold' 
-              }}>
-                Доступные услуги (необязательно):
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ 
+                  fontWeight: 'bold' 
+                }}>
+                  Доступные услуги (необязательно):
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowNewServiceForm(!showNewServiceForm)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    color: '#fff',
+                    backgroundColor: showNewServiceForm ? '#6c757d' : '#17a2b8',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showNewServiceForm ? '✖ Отменить' : '➕ Создать новую услугу'}
+                </button>
+              </div>
+              
+              {showNewServiceForm && (
+                <div style={{
+                  border: '1px solid #17a2b8',
+                  borderRadius: '4px',
+                  padding: '15px',
+                  marginBottom: '15px',
+                  backgroundColor: '#f0f8ff'
+                }}>
+                  <h4 style={{ marginBottom: '15px', marginTop: '0' }}>Создать новую услугу</h4>
+                  <form onSubmit={handleCreateService}>
+                    <div style={{ marginBottom: '10px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+                        Название услуги: *
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={newServiceData.name}
+                        onChange={handleNewServiceChange}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          fontSize: '14px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box'
+                        }}
+                        placeholder="Введите название услуги"
+                      />
+                    </div>
+                    <div style={{ marginBottom: '10px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+                        Цена (₽): *
+                      </label>
+                      <input
+                        type="number"
+                        name="price"
+                        value={newServiceData.price}
+                        onChange={handleNewServiceChange}
+                        required
+                        min="0"
+                        step="0.01"
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          fontSize: '14px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box'
+                        }}
+                        placeholder="Введите цену"
+                      />
+                    </div>
+                    <div style={{ marginBottom: '10px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+                        Описание (необязательно):
+                      </label>
+                      <textarea
+                        name="description"
+                        value={newServiceData.description}
+                        onChange={handleNewServiceChange}
+                        rows="2"
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          fontSize: '14px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box'
+                        }}
+                        placeholder="Введите описание услуги"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={creatingService}
+                      style={{
+                        padding: '8px 16px',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        color: '#fff',
+                        backgroundColor: creatingService ? '#6c757d' : '#17a2b8',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: creatingService ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {creatingService ? 'Создание...' : 'Создать услугу'}
+                    </button>
+                  </form>
+                </div>
+              )}
+              
               {services.length === 0 ? (
                 <div style={{ color: '#666', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
                   Услуги не загружены
