@@ -67,10 +67,21 @@ export default function CreateCard() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('Загрузка мастеров...');
         const mastersData = await getAllMasters();
-        setMasters(mastersData);
+        console.log('Получены мастера:', mastersData);
+        if (Array.isArray(mastersData)) {
+          setMasters(mastersData);
+          if (mastersData.length === 0) {
+            console.warn('Список мастеров пуст');
+          }
+        } else {
+          console.error('Некорректный формат данных мастеров:', mastersData);
+          setMasters([]);
+        }
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
+        setMasters([]);
       }
     };
     
@@ -239,12 +250,21 @@ export default function CreateCard() {
             required
           >
             <option value="">Выберите мастера</option>
-            {masters.map(master => (
-              <option key={master.id} value={master.id}>
-                {master.name} {master.phone ? `(${master.phone})` : ''}
-              </option>
-            ))}
+            {masters.length === 0 ? (
+              <option value="" disabled>Мастера не загружены</option>
+            ) : (
+              masters.map(master => (
+                <option key={master.id} value={master.id}>
+                  {master.name} {master.phone ? `(${master.phone})` : ''}
+                </option>
+              ))
+            )}
           </select>
+          {masters.length === 0 && (
+            <div style={{ color: '#856404', fontSize: '12px', marginTop: '5px' }}>
+              ⚠️ Мастера не загружены. Проверьте консоль или перейдите в раздел "Мастера" для добавления.
+            </div>
+          )}
         </div>
 
         {formData.master_id && (

@@ -7,6 +7,7 @@ import ShiftManagement from './components/ShiftManagement';
 import ServicesView from './components/ServicesView';
 import UserRegistration from './components/UserRegistration';
 import ShiftLogs from './components/ShiftLogs';
+import MastersManagement from './components/MastersManagement';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { openShift, closeShift } from './service/api';
@@ -137,6 +138,12 @@ function Navigation() {
               🛠️ Услуги
             </Link>
             <Link 
+              to="/masters" 
+              style={{ textDecoration: 'none', color: '#007bff', fontWeight: 'bold' }}
+            >
+              👨‍🔧 Мастера
+            </Link>
+            <Link 
               to="/shift-management" 
               style={{ textDecoration: 'none', color: '#007bff', fontWeight: 'bold' }}
             >
@@ -265,6 +272,7 @@ function App() {
           <Route path="/shift-management" element={<ShiftManagement />} />
           <Route path="/shift-logs" element={<ShiftLogs />} />
           <Route path="/services" element={<ServicesView />} />
+          <Route path="/masters" element={<MastersManagement />} />
         </Routes>
       </div>
     </Router>

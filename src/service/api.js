@@ -139,6 +139,20 @@ export async function getMasterServices(masterId) {
   }
 }
 
+// Создать мастера
+export async function createMaster(masterData) {
+  try {
+    const response = await fetchAPI('/masters', {
+      method: 'POST',
+      body: JSON.stringify(masterData)
+    });
+    return response;
+  } catch (err) {
+    console.error("ошибка создания мастера", err);
+    return { success: false, error: err.message };
+  }
+}
+
 // ========== API ДЛЯ УСЛУГ ==========
 
 // Получить все услуги
