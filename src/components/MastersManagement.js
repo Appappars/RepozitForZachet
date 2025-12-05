@@ -16,7 +16,6 @@ export default function MastersManagement() {
   const [services, setServices] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [masterServices, setMasterServices] = useState({}); // {masterId: [services]}
-  const [editingMaster, setEditingMaster] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -98,20 +97,31 @@ export default function MastersManagement() {
       if (response.id) {
         const masterId = response.id;
         
-        // Добавляем выбранные услуги
+        // Обновляем список мастеров сразу после создания
+        await loadMasters();
+        
+        // Добавляем выбранные услуги (если есть ошибки, мастер уже будет виден в списке)
         if (selectedServices.length > 0) {
-          const servicePromises = selectedServices.map(serviceId => 
-            addServiceToMaster(masterId, serviceId)
-          );
-          await Promise.all(servicePromises);
+          try {
+            const servicePromises = selectedServices.map(serviceId => 
+              addServiceToMaster(masterId, serviceId)
+            );
+            await Promise.all(servicePromises);
+            setSuccess('Мастер успешно добавлен со всеми услугами!');
+          } catch (serviceErr) {
+            // Мастер уже создан и отображается, но услуги не добавились
+            console.error('Ошибка при добавлении услуг:', serviceErr);
+            setSuccess('Мастер успешно добавлен, но некоторые услуги не удалось добавить. Вы можете добавить их позже.');
+            // Обновляем список еще раз, чтобы показать мастера без услуг
+            await loadMasters();
+          }
+        } else {
+          setSuccess('Мастер успешно добавлен!');
         }
         
-        setSuccess('Мастер успешно добавлен!');
         setFormData({ name: '', phone: '' });
         setSelectedServices([]);
         setShowAddForm(false);
-        // Обновляем список мастеров
-        await loadMasters();
       } else {
         setError(response.error || 'Ошибка при создании мастера');
       }
