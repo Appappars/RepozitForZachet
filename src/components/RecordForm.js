@@ -90,7 +90,7 @@ export default function CreateCard() {
     }
   }, [operator, activeShift]);
 
-  // Загружаем услуги мастера при выборе мастера
+  // Загружаем услуги мастера при выборе мастера (цены не используем)
   useEffect(() => {
     const loadMasterServices = async () => {
       if (formData.master_id) {
@@ -133,7 +133,7 @@ export default function CreateCard() {
     });
   };
 
-  // Обработка выбора услуги
+  // Обработка выбора услуги (цены не учитываем)
   const handleServiceToggle = (service) => {
     setSelectedServices(prev => {
       const exists = prev.find(s => s.service_id === service.id);
@@ -142,14 +142,11 @@ export default function CreateCard() {
       } else {
         return [...prev, {
           service_id: service.id,
-          price: service.price
+          price: 0
         }];
       }
     });
   };
-
-  // Вычисляем общую цену
-  const totalPrice = selectedServices.reduce((sum, service) => sum + Number(service.price || 0), 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // предотвращаем перезагрузку страницы
@@ -175,16 +172,10 @@ export default function CreateCard() {
       return;
     }
 
-    // Проверяем, что выбрана хотя бы одна услуга
-    if (selectedServices.length === 0) {
-      setError('Необходимо выбрать хотя бы одну услугу');
-      return;
-    }
-    
     // Создаем запись с услугами
     const recordData = {
       ...formData,
-      price: totalPrice,
+      price: Number(formData.payment_amount || 0),
       services: selectedServices,
       operator_id: operator.id,
       shift_id: activeShift.id
@@ -306,13 +297,10 @@ export default function CreateCard() {
               {selectedServices.map((sel, index) => {
                 const service = availableServices.find(s => s.id === sel.service_id);
                 return service ? (
-                  <li key={index}>{service.name} - {sel.price} ₽</li>
+                  <li key={index}>{service.name}</li>
                 ) : null;
               })}
             </ul>
-            <div style={{ marginTop: '10px', fontSize: '18px', fontWeight: 'bold' }}>
-              Общая стоимость: {totalPrice.toFixed(2)} ₽
-            </div>
           </div>
         )}
 
