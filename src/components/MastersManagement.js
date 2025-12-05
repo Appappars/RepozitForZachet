@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllMasters, createMaster, getAllServices, addServiceToMaster, removeServiceFromMaster, getMasterServices, createService } from '../service/api';
+import { getAllMasters, createMaster, addServiceToMaster, removeServiceFromMaster, getMasterServices, createService } from '../service/api';
 
 export default function MastersManagement() {
   const [masters, setMasters] = useState([]);
@@ -11,19 +11,11 @@ export default function MastersManagement() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    phone: ''
+    phone: '',
+    serviceName: ''
   });
-  const [services, setServices] = useState([]);
-  const [selectedServices, setSelectedServices] = useState([]);
   const [masterServices, setMasterServices] = useState({}); // {masterId: [services]}
   const [submitting, setSubmitting] = useState(false);
-  const [showNewServiceForm, setShowNewServiceForm] = useState(false);
-  const [newServiceData, setNewServiceData] = useState({
-    name: '',
-    price: '',
-    description: ''
-  });
-  const [creatingService, setCreatingService] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +28,6 @@ export default function MastersManagement() {
     
     setOperator(JSON.parse(operatorData));
     loadMasters();
-    loadServices();
   }, [navigate]);
 
   const loadMasters = async () => {
@@ -69,15 +60,6 @@ export default function MastersManagement() {
     }
   };
 
-  const loadServices = async () => {
-    try {
-      const servicesData = await getAllServices();
-      setServices(servicesData || []);
-    } catch (err) {
-      console.error('Ошибка загрузки услуг:', err);
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -97,11 +79,15 @@ export default function MastersManagement() {
       setSubmitting(false);
       return;
     }
+    if (!formData.serviceName.trim()) {
+      setError('Название услуги обязательно');
+      setSubmitting(false);
+      return;
+    }
 
     try {
       // Создаем мастера
       console.log('Создание мастера с данными:', formData);
-      console.log('Выбранные услуги:', selectedServices);
       const response = await createMaster(formData);
       console.log('Ответ создания мастера:', response);
       
@@ -109,48 +95,30 @@ export default function MastersManagement() {
         const masterId = response.id;
         console.log('Мастер создан с ID:', masterId);
         
-        // Обновляем список мастеров сразу после создания
+        // Создаем услугу (без цены) и привязываем к мастеру
+        try {
+          const serviceResponse = await createService({
+            name: formData.serviceName.trim(),
+            price: 0,
+            description: null
+          });
+
+          if (serviceResponse.id) {
+            await addServiceToMaster(masterId, serviceResponse.id);
+            setSuccess('Мастер и услуга успешно созданы!');
+          } else {
+            console.error('Ошибка создания услуги:', serviceResponse);
+            setSuccess('Мастер создан, но услугу не удалось создать. Добавьте услугу позже.');
+          }
+        } catch (serviceErr) {
+          console.error('Ошибка при создании/привязке услуги:', serviceErr);
+          setSuccess('Мастер создан, но услугу не удалось создать/привязать. Добавьте позже.');
+        }
+
+        // Обновляем список мастеров с услугами
         await loadMasters();
         
-        // Добавляем выбранные услуги (если есть ошибки, мастер уже будет виден в списке)
-        if (selectedServices.length > 0) {
-          console.log('Добавление услуг к мастеру:', selectedServices);
-          const serviceResults = [];
-          const serviceErrors = [];
-          
-          for (const serviceId of selectedServices) {
-            try {
-              console.log(`Добавление услуги ${serviceId} к мастеру ${masterId}`);
-              const serviceResponse = await addServiceToMaster(masterId, serviceId);
-              console.log('Ответ добавления услуги:', serviceResponse);
-              
-              if (serviceResponse.id || serviceResponse.success) {
-                serviceResults.push(serviceId);
-              } else {
-                serviceErrors.push({ serviceId, error: serviceResponse.error || 'Неизвестная ошибка' });
-              }
-            } catch (serviceErr) {
-              console.error(`Ошибка при добавлении услуги ${serviceId}:`, serviceErr);
-              serviceErrors.push({ serviceId, error: serviceErr.message });
-            }
-          }
-          
-          if (serviceErrors.length === 0) {
-            setSuccess('Мастер успешно добавлен со всеми услугами!');
-          } else if (serviceResults.length > 0) {
-            setSuccess(`Мастер успешно добавлен! Добавлено услуг: ${serviceResults.length} из ${selectedServices.length}. Некоторые услуги не удалось добавить.`);
-          } else {
-            setSuccess('Мастер успешно добавлен, но не удалось добавить услуги. Вы можете добавить их позже.');
-          }
-          
-          // Обновляем список еще раз, чтобы показать мастера с услугами
-          await loadMasters();
-        } else {
-          setSuccess('Мастер успешно добавлен!');
-        }
-        
-        setFormData({ name: '', phone: '' });
-        setSelectedServices([]);
+        setFormData({ name: '', phone: '', serviceName: '' });
         setShowAddForm(false);
       } else {
         console.error('Ошибка создания мастера - нет ID в ответе:', response);
@@ -165,83 +133,6 @@ export default function MastersManagement() {
       console.error('Полная информация об ошибке:', err);
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleServiceToggle = (serviceId) => {
-    setSelectedServices(prev => {
-      if (prev.includes(serviceId)) {
-        return prev.filter(id => id !== serviceId);
-      } else {
-        return [...prev, serviceId];
-      }
-    });
-  };
-
-  const handleNewServiceChange = (e) => {
-    const { name, value } = e.target;
-    setNewServiceData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleCreateService = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!newServiceData.name.trim()) {
-      setError('Название услуги обязательно');
-      return;
-    }
-    
-    if (!newServiceData.price || Number(newServiceData.price) <= 0) {
-      setError('Цена услуги должна быть больше 0');
-      return;
-    }
-
-    setCreatingService(true);
-    try {
-      const response = await createService({
-        name: newServiceData.name.trim(),
-        price: Number(newServiceData.price),
-        description: newServiceData.description.trim() || null
-      });
-      
-      if (response.id) {
-        // Обновляем список услуг
-        await loadServices();
-        // Автоматически добавляем новую услугу к выбранным
-        setSelectedServices(prev => [...prev, response.id]);
-        // Очищаем форму
-        setNewServiceData({ name: '', price: '', description: '' });
-        setShowNewServiceForm(false);
-        setSuccess('Услуга успешно создана и добавлена к мастеру!');
-      } else {
-        setError(response.error || 'Ошибка при создании услуги');
-      }
-    } catch (err) {
-      setError('Ошибка при создании услуги: ' + err.message);
-    } finally {
-      setCreatingService(false);
-    }
-  };
-
-  const handleAddServiceToMaster = async (masterId, serviceId) => {
-    try {
-      const response = await addServiceToMaster(masterId, serviceId);
-      if (response.id || response.success) {
-        // Обновляем услуги мастера
-        const masterServicesData = await getMasterServices(masterId);
-        setMasterServices(prev => ({
-          ...prev,
-          [masterId]: masterServicesData || []
-        }));
-      } else {
-        alert('Ошибка при добавлении услуги: ' + (response.error || 'Неизвестная ошибка'));
-      }
-    } catch (err) {
-      alert('Ошибка при добавлении услуги: ' + err.message);
     }
   };
 
@@ -390,168 +281,29 @@ export default function MastersManagement() {
             </div>
 
             <div style={{ marginBottom: '15px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ 
-                  fontWeight: 'bold' 
-                }}>
-                  Доступные услуги (необязательно):
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowNewServiceForm(!showNewServiceForm)}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    color: '#fff',
-                    backgroundColor: showNewServiceForm ? '#6c757d' : '#17a2b8',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {showNewServiceForm ? '✖ Отменить' : '➕ Создать новую услугу'}
-                </button>
-              </div>
-              
-              {showNewServiceForm && (
-                <div style={{
-                  border: '1px solid #17a2b8',
+              <label style={{ 
+                display: 'block', 
+                marginBottom: '8px', 
+                fontWeight: 'bold' 
+              }}>
+                Услуга для мастера (обязательно):
+              </label>
+              <input
+                type="text"
+                name="serviceName"
+                value={formData.serviceName}
+                onChange={handleChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '14px',
+                  border: '1px solid #ddd',
                   borderRadius: '4px',
-                  padding: '15px',
-                  marginBottom: '15px',
-                  backgroundColor: '#f0f8ff'
-                }}>
-                  <h4 style={{ marginBottom: '15px', marginTop: '0' }}>Создать новую услугу</h4>
-                  <form onSubmit={handleCreateService}>
-                    <div style={{ marginBottom: '10px' }}>
-                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-                        Название услуги: *
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={newServiceData.name}
-                        onChange={handleNewServiceChange}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          fontSize: '14px',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px',
-                          boxSizing: 'border-box'
-                        }}
-                        placeholder="Введите название услуги"
-                      />
-                    </div>
-                    <div style={{ marginBottom: '10px' }}>
-                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-                        Цена (₽): *
-                      </label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={newServiceData.price}
-                        onChange={handleNewServiceChange}
-                        required
-                        min="0"
-                        step="0.01"
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          fontSize: '14px',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px',
-                          boxSizing: 'border-box'
-                        }}
-                        placeholder="Введите цену"
-                      />
-                    </div>
-                    <div style={{ marginBottom: '10px' }}>
-                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-                        Описание (необязательно):
-                      </label>
-                      <textarea
-                        name="description"
-                        value={newServiceData.description}
-                        onChange={handleNewServiceChange}
-                        rows="2"
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          fontSize: '14px',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px',
-                          boxSizing: 'border-box'
-                        }}
-                        placeholder="Введите описание услуги"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={creatingService}
-                      style={{
-                        padding: '8px 16px',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        color: '#fff',
-                        backgroundColor: creatingService ? '#6c757d' : '#17a2b8',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: creatingService ? 'not-allowed' : 'pointer'
-                      }}
-                    >
-                      {creatingService ? 'Создание...' : 'Создать услугу'}
-                    </button>
-                  </form>
-                </div>
-              )}
-              
-              {services.length === 0 ? (
-                <div style={{ color: '#666', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                  Услуги не загружены
-                </div>
-              ) : (
-                <div style={{ 
-                  border: '1px solid #ddd', 
-                  borderRadius: '4px', 
-                  padding: '10px', 
-                  maxHeight: '200px', 
-                  overflowY: 'auto',
-                  backgroundColor: '#fff'
-                }}>
-                  {services.map(service => {
-                    const isSelected = selectedServices.includes(service.id);
-                    return (
-                      <label 
-                        key={service.id} 
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          marginBottom: '8px',
-                          cursor: 'pointer',
-                          padding: '5px'
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleServiceToggle(service.id)}
-                          style={{ marginRight: '8px' }}
-                        />
-                        <span>
-                          {service.name} - {service.price} ₽
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-              {selectedServices.length > 0 && (
-                <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-                  Выбрано услуг: {selectedServices.length}
-                </div>
-              )}
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Введите название услуги"
+              />
             </div>
 
             <button
@@ -654,39 +406,7 @@ export default function MastersManagement() {
                       </div>
                     )}
                     
-                    <div style={{ marginTop: '10px' }}>
-                      <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '14px' }}>
-                        Добавить услугу:
-                      </div>
-                      {services.length === 0 ? (
-                        <div style={{ color: '#666', fontSize: '12px' }}>Услуги не загружены</div>
-                      ) : (
-                        <select
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              handleAddServiceToMaster(master.id, e.target.value);
-                              e.target.value = '';
-                            }
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '8px',
-                            fontSize: '14px',
-                            border: '1px solid #ddd',
-                            borderRadius: '4px'
-                          }}
-                        >
-                          <option value="">Выберите услугу для добавления</option>
-                          {services
-                            .filter(service => !masterServicesList.some(ms => ms.id === service.id))
-                            .map(service => (
-                              <option key={service.id} value={service.id}>
-                                {service.name} - {service.price} ₽
-                              </option>
-                            ))}
-                        </select>
-                      )}
-                    </div>
+                    
                   </div>
                   
                   <div style={{ color: '#999', fontSize: '12px', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #eee' }}>

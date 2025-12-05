@@ -132,12 +132,6 @@ function Navigation() {
               ➕ Создать запись
             </Link>
             <Link 
-              to="/services" 
-              style={{ textDecoration: 'none', color: '#007bff', fontWeight: 'bold' }}
-            >
-              🛠️ Услуги
-            </Link>
-            <Link 
               to="/masters" 
               style={{ textDecoration: 'none', color: '#007bff', fontWeight: 'bold' }}
             >
