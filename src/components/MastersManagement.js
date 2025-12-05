@@ -100,28 +100,51 @@ export default function MastersManagement() {
 
     try {
       // Создаем мастера
+      console.log('Создание мастера с данными:', formData);
+      console.log('Выбранные услуги:', selectedServices);
       const response = await createMaster(formData);
+      console.log('Ответ создания мастера:', response);
+      
       if (response.id) {
         const masterId = response.id;
+        console.log('Мастер создан с ID:', masterId);
         
         // Обновляем список мастеров сразу после создания
         await loadMasters();
         
         // Добавляем выбранные услуги (если есть ошибки, мастер уже будет виден в списке)
         if (selectedServices.length > 0) {
-          try {
-            const servicePromises = selectedServices.map(serviceId => 
-              addServiceToMaster(masterId, serviceId)
-            );
-            await Promise.all(servicePromises);
-            setSuccess('Мастер успешно добавлен со всеми услугами!');
-          } catch (serviceErr) {
-            // Мастер уже создан и отображается, но услуги не добавились
-            console.error('Ошибка при добавлении услуг:', serviceErr);
-            setSuccess('Мастер успешно добавлен, но некоторые услуги не удалось добавить. Вы можете добавить их позже.');
-            // Обновляем список еще раз, чтобы показать мастера без услуг
-            await loadMasters();
+          console.log('Добавление услуг к мастеру:', selectedServices);
+          const serviceResults = [];
+          const serviceErrors = [];
+          
+          for (const serviceId of selectedServices) {
+            try {
+              console.log(`Добавление услуги ${serviceId} к мастеру ${masterId}`);
+              const serviceResponse = await addServiceToMaster(masterId, serviceId);
+              console.log('Ответ добавления услуги:', serviceResponse);
+              
+              if (serviceResponse.id || serviceResponse.success) {
+                serviceResults.push(serviceId);
+              } else {
+                serviceErrors.push({ serviceId, error: serviceResponse.error || 'Неизвестная ошибка' });
+              }
+            } catch (serviceErr) {
+              console.error(`Ошибка при добавлении услуги ${serviceId}:`, serviceErr);
+              serviceErrors.push({ serviceId, error: serviceErr.message });
+            }
           }
+          
+          if (serviceErrors.length === 0) {
+            setSuccess('Мастер успешно добавлен со всеми услугами!');
+          } else if (serviceResults.length > 0) {
+            setSuccess(`Мастер успешно добавлен! Добавлено услуг: ${serviceResults.length} из ${selectedServices.length}. Некоторые услуги не удалось добавить.`);
+          } else {
+            setSuccess('Мастер успешно добавлен, но не удалось добавить услуги. Вы можете добавить их позже.');
+          }
+          
+          // Обновляем список еще раз, чтобы показать мастера с услугами
+          await loadMasters();
         } else {
           setSuccess('Мастер успешно добавлен!');
         }
@@ -130,10 +153,16 @@ export default function MastersManagement() {
         setSelectedServices([]);
         setShowAddForm(false);
       } else {
-        setError(response.error || 'Ошибка при создании мастера');
+        console.error('Ошибка создания мастера - нет ID в ответе:', response);
+        const errorMsg = response.error || response.message || 'Ошибка при создании мастера. Проверьте консоль для деталей.';
+        setError(errorMsg);
+        console.error('Детали ошибки:', JSON.stringify(response, null, 2));
       }
     } catch (err) {
-      setError('Ошибка при создании мастера: ' + err.message);
+      console.error('Исключение при создании мастера:', err);
+      const errorMsg = err.message || err.toString() || 'Неизвестная ошибка при создании мастера';
+      setError('Ошибка при создании мастера: ' + errorMsg);
+      console.error('Полная информация об ошибке:', err);
     } finally {
       setSubmitting(false);
     }

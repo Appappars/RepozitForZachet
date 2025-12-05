@@ -30,11 +30,20 @@ async function fetchAPI(endpoint, options = {}) {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Network response was not ok' }));
-      throw new Error(error.error || 'Network response was not ok');
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+      console.error('API Error Response:', errorData);
+      throw new Error(errorMessage);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('API Response:', data);
+    return data;
   } catch (error) {
     console.error('API Error:', error);
     throw error;
@@ -163,10 +172,12 @@ export async function createMaster(masterData) {
 // Добавить услугу мастеру
 export async function addServiceToMaster(masterId, serviceId) {
   try {
+    console.log(`Добавление услуги ${serviceId} мастеру ${masterId}`);
     const response = await fetchAPI(`/masters/${masterId}/services`, {
       method: 'POST',
       body: JSON.stringify({ service_id: serviceId })
     });
+    console.log(`Ответ добавления услуги:`, response);
     return response;
   } catch (err) {
     console.error("ошибка добавления услуги мастеру", err);
